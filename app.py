@@ -11,7 +11,39 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# 2. Gemini AI 설정 (오류 방지 예외 처리)
+# 2. 커스텀 디자인 설정 (친구들 앱보다 훨씬 예쁜 카드 스타일 적용!)
+st.markdown(
+    """
+    <style>
+    /* 카드 상자 스타일 */
+    .custom-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+        border: 2px solid #3b82f6;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    /* 알림 카드 스타일 */
+    .notice-card {
+        background-color: #fef3c7;
+        border-left: 6px solid #f59e0b;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+    /* 큰 메인 제목 */
+    .main-title {
+        color: #1e40af;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
+# 3. Gemini AI 설정 (에러 방지 안전 로직)
 ai_client = None
 try:
     from google import genai
@@ -24,7 +56,7 @@ try:
 except Exception:
     ai_client = None
 
-# 3. Session State (공지사항 데이터 관리)
+# 4. 데이터 저장 공간 (공지사항)
 if "announcements" not in st.session_state:
     st.session_state.announcements = [
         {
@@ -33,7 +65,7 @@ if "announcements" not in st.session_state:
             "subject": "과학",
             "original": "1반 교실",
             "changed": "제2과학실 (창의관 3층)",
-            "note": "실험복 착용 및 창의관 3층으로 이동",
+            "note": "실험복 착용 필수",
         },
         {
             "date": "2026-10-22",
@@ -45,7 +77,7 @@ if "announcements" not in st.session_state:
         },
     ]
 
-# 4. 시간표 및 특별실 데이터
+# 5. 시간표 및 교실 정보 데이터
 TIMETABLE = {
     "월요일": [
         ("1교시", "국어", "1반 교실"),
@@ -97,7 +129,7 @@ TIMETABLE = {
 ROOM_INFO = {
     "제1과학실": {
         "location": "본관 3층 중앙",
-        "guide": "본관 중앙 계단을 통해 3층으로 올라간 뒤 오른쪽 두 번째 교실입니다.",
+        "guide": "본관 중앙 계단을 이용해 3층으로 올라간 후 오른쪽 두 번째 교실입니다.",
         "note": "실습 도구 주의, 음료 반입 금지",
     },
     "제2과학실": {
@@ -127,10 +159,14 @@ ROOM_INFO = {
     },
 }
 
-# 5. 사이드바 메뉴 (스크린샷 메뉴 구성 완벽 일치)
-st.sidebar.title("📌 네비게이션")
+# 6. 사이드바 메뉴 (스크린샷 항목과 정확히 100% 일치하도록 작성)
+st.sidebar.image(
+    "https://img.icons8.com/color/96/school.png", use_container_width=False
+)
+st.sidebar.title("📌 바로가기")
+
 menu = st.sidebar.radio(
-    "메뉴를 선택하세요:",
+    "원하는 페이지를 선택하세요:",
     [
         "우리반 네비게이터",
         "교실 및 특별실 상세정보",
@@ -140,80 +176,115 @@ menu = st.sidebar.radio(
     ],
 )
 
-# 6. 상단 타이틀
-st.title("🏫 우리반 네비게이터")
+# 7. 메인 헤더
+st.markdown(
+    "<h1 class='main-title'>🏫 우리반 네비게이터</h1>", unsafe_allow_html=True
+)
 st.info(
-    f"🔊 **안내 상태**: 정상 작동 중 | 📢 **현재 등록된 변경 알림**: {len(st.session_state.announcements)}건"
+    f"🔔 **알림**: 등록된 교실 변경 사항이 **{len(st.session_state.announcements)}건** 있습니다. 이동 수업 전 확인하세요!"
 )
 st.markdown("---")
 
 # =========================================================
-# 1) 우리반 네비게이터 (메인 홈 화면)
+# PAGE 1: 우리반 네비게이터 (메인 홈)
 # =========================================================
 if menu == "우리반 네비게이터":
     st.subheader("📋 앱 소개 및 가이드 안내")
 
-    with st.container(border=True):
-        st.markdown(
-            "### ❓ **어느 날 시간표가 갑자기 바뀌거나 특별실 위치가 바뀌어 당황하신 적이 있나요?**"
-        )
-        st.markdown(
-            "### 👉 **이제 걱정할 필요 없습니다! '우리반 네비게이터'가 있기 때문입니다!**"
-        )
-
-    st.write("")
-    st.write("### 📌 서비스 이용 가이드")
-    st.success(
-        "👈 **왼쪽 사이드바 메뉴**를 클릭하시면 원하시는 정보로 바로 이동합니다!"
+    st.markdown(
+        """
+    <div class="custom-card">
+        <h3 style="margin-top:0;">❓ 어느 날 시간표가 갑자기 바뀌거나 특별실 위치가 바뀌어 당황하신 적이 있나요?</h3>
+        <h4 style="color:#2563eb; margin-bottom:0;">👉 이제 걱정할 필요 없습니다! '우리반 네비게이터'가 정확하게 안내해 드립니다!</h4>
+    </div>
+    """,
+        unsafe_allow_html=True,
     )
+
+    st.write("### 🎨 주요 기능 안내")
 
     col1, col2 = st.columns(2)
     with col1:
-        with st.container(border=True):
-            st.markdown("#### 📅 우리반 기본 시간표")
-            st.write("요일별/교시별 정규 시간표와 기본 교실 위치 안내")
-        with st.container(border=True):
-            st.markdown("#### 📢 이동 수업 및 교실 공지")
-            st.write("장소가 변경된 이동 수업 및 특별실 일정 확인 및 등록")
+        st.markdown(
+            """
+        <div class="custom-card">
+            <h4>📅 1. 우리반 기본 시간표</h4>
+            <p>요일별 정규 수업과 기본 교실 위치를 한눈에 확인하세요.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            """
+        <div class="custom-card">
+            <h4>📢 2. 이동 수업 및 교실 공지</h4>
+            <p>갑자기 바뀐 이동 수업 장소를 빠르게 확인하고 새로 등록합니다.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     with col2:
-        with st.container(border=True):
-            st.markdown("#### 🗺️ 학교 지도 및 길 안내")
-            st.write("출발지부터 목적지 특별실까지의 최적 이동 경로 안내")
-        with st.container(border=True):
-            st.markdown("#### 🔍 교실 및 특별실 상세정보")
-            st.write("특별실 주의사항 검색 사전 및 Gemini AI 길잡이 질문 기능")
+        st.markdown(
+            """
+        <div class="custom-card">
+            <h4>🗺️ 3. 학교 지도 및 길 안내</h4>
+            <p>내가 가야 하는 특별실까지 헤매지 않는 최적 경로를 안내합니다.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            """
+        <div class="custom-card">
+            <h4>🔍 4. 교실 및 특별실 상세정보</h4>
+            <p>특별실 이용 수칙 및 Gemini AI 기반 길안내 답변 기능 제공!</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    st.success("👈 왼쪽 **사이드바 메뉴**를 클릭하시면 원하는 화면으로 바로 이동합니다!")
 
 # =========================================================
-# 2) 교실 및 특별실 상세정보
+# PAGE 2: 교실 및 특별실 상세정보
 # =========================================================
 elif menu == "교실 및 특별실 상세정보":
-    st.subheader("🔍 교실 및 특별실 상세정보 & AI")
+    st.subheader("🔍 교실 및 특별실 상세정보 사전")
 
-    st.write("### 📌 특별실 상세 사전")
     selected_room = st.selectbox(
         "궁금한 특별실을 선택하세요:", list(ROOM_INFO.keys())
     )
     if selected_room:
         data = ROOM_INFO[selected_room]
-        st.write(f"• **위치**: {data['location']}")
-        st.write(f"• **상세 경로**: {data['guide']}")
-        st.write(f"• **이용 수칙**: {data['note']}")
+        st.markdown(
+            f"""
+        <div class="custom-card">
+            <h3 style="margin-top:0;">📍 {selected_room}</h3>
+            <p><b>• 위치:</b> {data['location']}</p>
+            <p><b>• 찾아가는 길:</b> {data['guide']}</p>
+            <p><b>• 이용 수칙:</b> <span style="color:#dc2626;">{data['note']}</span></p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
-    st.write("### 🤖 AI 네비게이터에게 질문하기 (Gemini)")
+    st.subheader("🤖 AI 네비게이터에게 질문하기 (Gemini)")
 
     user_query = st.text_input(
-        "질문을 입력하세요:",
-        placeholder="예: 비 오는 날 체육관까지 우산 없이 가는 빠른 길이 있어?",
+        "학교 길 찾기나 이동 수업에 대해 질문해보세요:",
+        placeholder="예: 제2과학실 갈 때 실습복 어디서 갈아입어?",
     )
 
-    if st.button("AI에게 질문하기"):
+    if st.button("✨ AI에게 질문하기", type="primary"):
         if user_query:
             if ai_client is not None:
-                with st.spinner("AI가 답변을 생각 중입니다..."):
+                with st.spinner("AI 답변 생성 중..."):
                     try:
-                        prompt = f"당신은 학교 길 안내 도우미입니다. 학생의 질문에 친절히 답변하세요: {user_query}"
+                        prompt = f"당신은 친절한 학교 길안내 도우미입니다. 질문에 답변해 주세요: {user_query}"
                         response = ai_client.models.generate_content(
                             model="gemini-2.5-flash-lite", contents=prompt
                         )
@@ -223,17 +294,17 @@ elif menu == "교실 및 특별실 상세정보":
                         st.error(f"오류가 발생했습니다: {e}")
             else:
                 st.warning(
-                    "🔑 GEMINI_API_KEY가 설정되지 않아 기본 응답으로 작동합니다."
+                    "🔑 API 키가 설정되지 않아 기본 안내 모드로 작동합니다."
                 )
                 st.info(
-                    f"'{user_query}'에 대한 답변입니다.\n\n"
-                    "왼쪽 메뉴의 **[학교 지도 및 길 안내]**에서 목적지를 선택하면 상세 안내를 확인하실 수 있습니다!"
+                    f"'{user_query}'에 대한 안내입니다.\n\n"
+                    "상단 선택 상자에서 교실을 선택하면 정확한 위치 및 이용 수칙을 확인하실 수 있습니다!"
                 )
         else:
             st.warning("질문을 입력해 주세요.")
 
 # =========================================================
-# 3) 우리반 기본 시간표
+# PAGE 3: 우리반 기본 시간표
 # =========================================================
 elif menu == "우리반 기본 시간표":
     st.subheader("📅 우리반 기본 시간표")
@@ -243,25 +314,23 @@ elif menu == "우리반 기본 시간표":
     default_day = weekdays[today_num] if today_num < 5 else "월요일"
 
     selected_day = st.selectbox(
-        "요일을 선택하세요:",
-        weekdays,
-        index=weekdays.index(default_day),
+        "요일 선택:", weekdays, index=weekdays.index(default_day)
     )
 
     data = TIMETABLE[selected_day]
     df = pd.DataFrame(data, columns=["교시", "과목", "기본 장소"])
 
     st.write(f"### 📖 {selected_day} 시간표")
-    st.table(df)
+    st.dataframe(df, use_container_width=True)
 
 # =========================================================
-# 4) 이동 수업 및 교실 공지
+# PAGE 4: 이동 수업 및 교실 공지
 # =========================================================
 elif menu == "이동 수업 및 교실 공지":
     st.subheader("📢 이동 수업 및 교실 공지")
 
     with st.expander("➕ 새 이동 수업 공지 등록하기"):
-        with st.form("add_notice_form", clear_on_submit=True):
+        with st.form("add_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 input_date = st.date_input(
@@ -307,21 +376,26 @@ elif menu == "이동 수업 및 교실 공지":
                             "note": input_note or "-",
                         }
                     )
-                    st.success("공지가 성공적으로 등록되었습니다!")
+                    st.success("새로운 변경 공지가 등록되었습니다!")
                     st.rerun()
                 else:
-                    st.error("과목명과 변경 장소는 필수 입력 사항입니다.")
+                    st.error("과목명과 변경 장소는 필수 입력값입니다.")
 
-    st.write("### 🚨 등록된 장소 변경 공지")
+    st.write("### 🚨 변경된 위치 공지 목록")
     for item in reversed(st.session_state.announcements):
-        st.warning(
-            f"**[{item['date']}] {item['period']} - {item['subject']}**\n\n"
-            f"📍 **위치 변경**: {item['original']} ➡️ **{item['changed']}**\n\n"
-            f"📝 **비고**: {item['note']}"
+        st.markdown(
+            f"""
+        <div class="notice-card">
+            <h4 style="margin-top:0;">[{item['date']}] {item['period']} - {item['subject']}</h4>
+            <p>📍 <b>장소:</b> {item['original']} ➡️ <b style="color:#dc2626;">{item['changed']}</b></p>
+            <p>📝 <b>비고:</b> {item['note']}</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
         )
 
 # =========================================================
-# 5) 학교 지도 및 길 안내
+# PAGE 5: 학교 지도 및 길 안내
 # =========================================================
 elif menu == "학교 지도 및 길 안내":
     st.subheader("🗺️ 학교 지도 및 길 안내")
@@ -329,13 +403,20 @@ elif menu == "학교 지도 및 길 안내":
     col1, col2 = st.columns(2)
     with col1:
         start_point = st.selectbox(
-            "출발지 선택:", ["1반 교실 (본관 2층)", "운동장", "본관 입구"]
+            "출발지:", ["1반 교실 (본관 2층)", "운동장", "본관 입구"]
         )
     with col2:
-        dest_point = st.selectbox("목적지 선택:", list(ROOM_INFO.keys()))
+        dest_point = st.selectbox("도착지 (목적지):", list(ROOM_INFO.keys()))
 
     if st.button("🚩 경로 안내 시작", type="primary"):
         info = ROOM_INFO[dest_point]
-        st.success(f"🎯 **목적지**: {dest_point} ({info['location']})")
-        st.write(f"🚶 **이동 경로**: {info['guide']}")
-        st.info(f"💡 **주의 사항**: {info['note']}")
+        st.markdown(
+            f"""
+        <div class="custom-card">
+            <h3>🎯 목적지: {dest_point} ({info['location']})</h3>
+            <p style="font-size: 1.05rem;">🚶 <b>이동 경로:</b> {info['guide']}</p>
+            <p style="color: #b45309;">💡 <b>주의 사항:</b> {info['note']}</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
